@@ -2,6 +2,8 @@ import express from "express";
 import User from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import verificationToken from "../middleware/verifyToken.middle.js";
+import  loginLimitter  from "../config/rateLimit.config.js";
 
 const authController = express.Router();
 
@@ -23,7 +25,7 @@ authController.post("/register", async(req,res)=>{
         res.status(400).json({message: err.message});
     }
 });
-authController.post("/login", async (req,res)=>{
+authController.post("/login",loginLimitter, async (req,res)=>{
     try{
         const {email,password} = req.body;
         const user = await User.findOne({email})
@@ -33,7 +35,7 @@ authController.post("/login", async (req,res)=>{
         const token = jwt.sign({id : user._id, email : user.email, username : user.usernname},
             process.env.JWT_SECRET, {expiresIn : "1h"},);
             console.log(token); 
-            res.cookies(
+            res.cookie(
                 "token",
                 token,
                 {
@@ -50,6 +52,10 @@ authController.post("/login", async (req,res)=>{
         res.status(400).json({message: err.message});
     }
 });
+authController.get("/users",verificationToken,async(req,res)=>{
+    res.end("hii");
+});
+
 authController.put("/update", (req,res)=>{
     res.json({
         message: "Update endpoint"
@@ -63,4 +69,4 @@ authController.delete("/delete", (req,res)=>{
 
 
 
-export default authController;
+export default authController; 
