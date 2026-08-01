@@ -1,0 +1,22 @@
+import bcrypt from "bcryptjs";
+import User from "../../models/user.model";
+import ApiError from "../../utils/ApiError.util";
+import asyncHandler from "../../utils/asyncHandler.util";
+
+const register = asyncHandler(async (req, res) => {
+  const { username, email, password } = req.body;
+
+  if (!username || !email || !password)
+    throw new ApiError(400, "All fields are required");
+
+  const existingUser = await User.findOne({ email });
+  if (existingUser) throw new ApiError(400, "User already exists");
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+  const user = new User({ username, email, password: hashedPassword });
+  await user.save();
+
+  res.status(201).json({ message: "User created successfully" });
+});
+
+export default register;
