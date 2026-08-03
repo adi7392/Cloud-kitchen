@@ -1,20 +1,21 @@
+import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
-import dotenv, { config } from "dotenv";
 
-dotenv.config()
+dotenv.config();
 
-const verificationToken = (req,res,next)=>{
-    const authHeader = req.headers.authorization;
-    if(!authHeader || !authHeader.startsWith("Bearer")){
-        return res.status(401).json({message : "token not found"});
-    }
-    const token = authHeader.split(" ")[1];
-    const isValid = jwt.verify(token,process.env.JWT_SECRET);
+const verificationToken = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res.status(401).json({ message: "Token not found" });
+  }
+  const token = authHeader.split(" ")[1];
 
-    if (!isValid){
-        return res.status(401).json({message : "Authentication failed"});
-    }
-    req.user = isValid;
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded;
     next();
+  } catch (err) {
+    return res.status(401).json({ message: "Invalid or expired token" });
+  }
 };
 export default verificationToken;

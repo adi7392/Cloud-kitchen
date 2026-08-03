@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
-import User from "../../models/user.model";
-import ApiError from "../../utils/ApiError.util";
-import asyncHandler from "../../utils/asyncHandler.util";
+import User from "../../models/user.model.js";
+import ApiError from "../../utils/ApiError.util.js";
+import asyncHandler from "../../utils/asyncHandler.util.js";
 
 const register = asyncHandler(async (req, res) => {
   const { username, email, password } = req.body;
