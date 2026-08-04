@@ -1,13 +1,21 @@
 import redisClient from "../config/redis.config.js";
 import logger from "../config/logger.config.js";
 
+const isRedisReady = () => {
+  try {
+    return redisClient && redisClient.isReady;
+  } catch {
+    return false;
+  }
+};
+
 /**
  * Cache middleware - checks Redis for cached response
  * @param {number} duration - Cache TTL in seconds (default: 60)
  */
 const cache = (duration = 60) => {
   return async (req, res, next) => {
-    if (req.method !== "GET") return next();
+    if (req.method !== "GET" || !isRedisReady()) return next();
 
     const key = `cache:${req.originalUrl}`;
 
@@ -30,6 +38,7 @@ const cache = (duration = 60) => {
 
       next();
     } catch (err) {
+      logger.error("Cache middleware error: %s", err.message);
       next();
     }
   };
@@ -40,6 +49,7 @@ const cache = (duration = 60) => {
  * @param {string} pattern - Key pattern to delete
  */
 const invalidateCache = async (pattern) => {
+  if (!isRedisReady()) return;
   try {
     const keys = await redisClient.keys(pattern);
     if (keys.length > 0) {

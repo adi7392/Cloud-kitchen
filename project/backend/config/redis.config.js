@@ -5,6 +5,7 @@ import { createClient } from "redis";
 import logger from "./logger.config.js";
 
 const REDIS_URL = process.env.REDIS_URL;
+const isExternalRedis = REDIS_URL && !REDIS_URL.includes("localhost");
 
 const redisClient = createClient({
   url: REDIS_URL || "redis://localhost:6379",
@@ -19,16 +20,10 @@ const redisClient = createClient({
   },
 });
 
-redisClient.on("connect", () => {
-  logger.info("Redis connected...");
-});
+redisClient.on("connect", () => logger.info("Redis connected..."));
+redisClient.on("error", (err) => logger.error("Redis error: %s", err.message));
 
-redisClient.on("error", (err) => {
-  logger.error("Redis error: %s", err.message);
-});
-
-// Only connect if a real external Redis URL is provided
-if (REDIS_URL && !REDIS_URL.includes("localhost")) {
+if (isExternalRedis) {
   try {
     await redisClient.connect();
   } catch (err) {
@@ -36,7 +31,7 @@ if (REDIS_URL && !REDIS_URL.includes("localhost")) {
     logger.warn("App will continue without caching.");
   }
 } else {
-  logger.warn("Redis: No valid REDIS_URL. Skipping Redis — app will run without caching.");
+  logger.warn("Redis: No valid REDIS_URL found. Running without cache.");
 }
 
 export default redisClient;
