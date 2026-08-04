@@ -1,0 +1,15 @@
+name:node app
+
+on:
+push:
+branches:
+-main
+
+jobs:
+build:
+runs-on:arm-64
+steps:
+-uses:actions/checkout@v2
+-run:npm install
+-run:npm test
+-run:npm run build
