@@ -3,8 +3,10 @@ import mongoose from "mongoose";
 import Kitchen from "./models/kitchen.model.js";
 import Menu from "./models/menu.model.js";
 import User from "./models/user.model.js";
+import dns from "dns";
 
 dotenv.config();
+dns.setServers(['8.8.8.8', '1.1.1.1']);
 
 async function seedData() {
   await mongoose.connect(process.env.MONGO_URL);

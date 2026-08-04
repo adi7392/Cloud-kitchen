@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import ThemeToggle from "../ThemeToggle";
 
@@ -10,6 +11,8 @@ const LandingNavbar = () => {
     { name: "CONTACT", href: "#contact" },
     { name: "REFER A FRIEND", href: "#refer" },
   ];
+
+  const [open, setOpen] = useState(false);
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-sm border-b border-gray-800">
@@ -56,6 +59,52 @@ const LandingNavbar = () => {
               />
             </svg>
           </Link>
+
+          {/* Mobile menu button */}
+          <button
+            onClick={() => setOpen((s) => !s)}
+            className="lg:hidden p-2 rounded-md text-white/90"
+            aria-label="Toggle menu"
+          >
+            <svg
+              className="h-6 w-6"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              {open ? (
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              ) : (
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
+              )}
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile links panel */}
+      <div className={`${open ? "block" : "hidden"} lg:hidden bg-black/95 border-t border-gray-800`}>
+        <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col gap-3">
+          {navLinks.map((link) => (
+            <a
+              key={link.name}
+              href={link.href}
+              className="text-white/90 hover:text-white text-base tracking-wide"
+            >
+              {link.name}
+            </a>
+          ))}
         </div>
       </div>
     </nav>

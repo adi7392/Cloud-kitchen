@@ -47,9 +47,9 @@ const ContactSection = () => {
               <div>
                 <h4 className="text-white font-medium mb-1">Address</h4>
                 <p className="text-white/60 text-sm">
-                  CafeSerenityBites, Sector 45,
+                  CafeSerenityBites,
                   <br />
-                  Gurugram, Haryana 122003
+                  Noida, Uttar Pradesh, India
                 </p>
               </div>
             </div>
@@ -74,7 +74,7 @@ const ContactSection = () => {
               <div>
                 <h4 className="text-white font-medium mb-1">Email</h4>
                 <p className="text-white/60 text-sm">
-                  hello@cafeserenity.bites
+                  adiiigupta7392@gmail.com
                 </p>
               </div>
             </div>
@@ -98,7 +98,7 @@ const ContactSection = () => {
               </div>
               <div>
                 <h4 className="text-white font-medium mb-1">Phone</h4>
-                <p className="text-white/60 text-sm">+91 98765 43210</p>
+                <p className="text-white/60 text-sm">+91 7392062928</p>
               </div>
             </div>
           </div>
