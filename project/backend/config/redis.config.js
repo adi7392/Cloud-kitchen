@@ -1,5 +1,6 @@
 import dotenv from "dotenv";
 import { createClient } from "redis";
+import logger from "./logger.config.js";
 
 dotenv.config();
 
@@ -17,19 +18,19 @@ const redisClient = createClient({
 });
 
 redisClient.on("connect", () => {
-  console.log("Redis connected...");
+  logger.info("Redis connected...");
 });
 
 redisClient.on("error", (err) => {
-  console.error("Redis error:", err.message);
+  logger.error("Redis error: %s", err.message);
 });
 
 // Connect gracefully — don't crash the server if Redis is unavailable
 try {
   await redisClient.connect();
 } catch (err) {
-  console.error("Redis connection failed:", err.message);
-  console.warn("App will continue without caching.");
+  logger.error("Redis connection failed: %s", err.message);
+  logger.warn("App will continue without caching.");
 }
 
 export default redisClient;

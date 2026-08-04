@@ -1,4 +1,5 @@
 import redisClient from "../config/redis.config.js";
+import logger from "../config/logger.config.js";
 
 /**
  * Cache middleware - checks Redis for cached response
@@ -45,7 +46,7 @@ const invalidateCache = async (pattern) => {
       await redisClient.del(keys);
     }
   } catch (err) {
-    console.error("Cache invalidation error:", err.message);
+    logger.error("Cache invalidation error: %s", err.message);
   }
 };
 

@@ -6,6 +6,7 @@ import morgan from "morgan";
 import path from "path";
 import swaggerUi from "swagger-ui-express";
 import { fileURLToPath } from "url";
+import logger from "../config/logger.config.js";
 import swaggerSpec from "../config/swagger.config.js";
 import adminRoute from "../routes/admin.route.js";
 import authRoute from "../routes/auth.route.js";
@@ -25,13 +26,13 @@ app.use(helmet());
 app.use(cors({ origin: process.env.CLIENT_URL || "*", credentials: true }));
 
 // Logger
-app.use(morgan("dev"));
+app.use(morgan("combined", { stream: logger.stream }));
 
 // Body parsers
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-// Serve frontend `dist` as static files (frontend located at ../frontend/dist)
-const frontendDist = path.join(__dirname, "..", "..", "frontend", "dist");
+// Serve frontend `dist` as static files from backend/public/dist
+const frontendDist = path.join(__dirname, "..", "public", "dist");
 app.use(express.static(frontendDist));
 
 // Swagger API Docs
@@ -65,7 +66,7 @@ app.use((req, res) => {
 
 // Global error handler
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+  logger.error(err.stack || err.message);
 
   const statusCode = err.statusCode || 500;
   res.status(statusCode).json({
