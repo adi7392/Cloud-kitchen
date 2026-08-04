@@ -2,35 +2,29 @@ import { v2 as cloudinary } from "cloudinary";
 import express from "express";
 import fs from "fs";
 import multer from "multer";
+
 const app = express();
+const PORT = process.env.PORT || 3000;
 
-const PORT = 3000;
 app.use(express.json());
-app.use(express.urlencoded());
-
-// const upload = multer({ dest: "uploads/" });
+app.use(express.urlencoded({ extended: true }));
 
 cloudinary.config({
-  cloud_name: "xjazfwpo5",
-  api_key: "757787559553667",
-  api_secret: "J_qO2wOTmqwuWvfBGY2ULkRSKns",
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
+
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, "uploads/");
   },
   filename: function (req, file, cb) {
-    // const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
     cb(null, file.originalname);
   },
 });
 
-//vikas.png
-//sadfghjkl
-//dsfgh.png
 const uploads = multer({ storage: storage });
-
-// const upload = multer({ dest: "uploads/" });
 
 app.get("/", (req, res) => {
   res.end("hello world");
@@ -43,13 +37,16 @@ app.post("/uploads", uploads.single("dp"), async (req, res) => {
     fs.unlinkSync(file.path);
     res.send(result);
   } catch (error) {
-    fs.unlinkSync(req.file.path); // Clean up the uploaded file on error
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
     res.status(500).send({
       message: "An error occurred during the upload.",
       error: error.message,
     });
   }
 });
+
 app.listen(PORT, () => {
-  console.log("server running");
+  console.log(`server running on port ${PORT}`);
 });
