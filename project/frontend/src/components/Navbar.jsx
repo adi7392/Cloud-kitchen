@@ -1,6 +1,6 @@
 import { useDispatch, useSelector } from "react-redux";
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
 import { logout } from "../redux/slices/authSlice.js";
 import ThemeToggle from "./ThemeToggle";
@@ -12,6 +12,8 @@ const Navbar = () => {
   const dispatch = useDispatch();
 
   const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const navigate = useNavigate();
 
   return (
     <nav
@@ -31,6 +33,23 @@ const Navbar = () => {
 
         {/* Desktop links */}
         <div className="hidden md:flex items-center gap-4">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (query.trim()) navigate(`/kitchens?search=${encodeURIComponent(query.trim())}`);
+              else navigate('/kitchens');
+              setQuery('');
+            }}
+            className="flex items-center mr-4"
+          >
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search kitchens or dishes..."
+              className="w-64 px-3 py-1.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+            />
+            <button type="submit" className="ml-2 bg-orange-500 text-white px-3 py-1.5 rounded-lg text-sm hover:bg-orange-600">Search</button>
+          </form>
           <Link
             to="/kitchens"
             className={`${

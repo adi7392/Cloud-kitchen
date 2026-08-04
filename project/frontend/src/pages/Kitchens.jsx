@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import api from "../api/axios";
 
 const Kitchens = () => {
@@ -8,8 +8,22 @@ const Kitchens = () => {
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    fetchKitchens();
+    // fetch based on query param if present
+    const params = new URLSearchParams(location.search);
+    const q = params.get("search") || params.get("q") || "";
+    setSearch(q);
+    fetchKitchens(q);
   }, []);
+
+  const location = useLocation();
+
+  useEffect(() => {
+    // refetch when the URL search param changes
+    const params = new URLSearchParams(location.search);
+    const q = params.get("search") || params.get("q") || "";
+    setSearch(q);
+    fetchKitchens(q);
+  }, [location.search]);
 
   const fetchKitchens = async (query = "") => {
     setLoading(true);
