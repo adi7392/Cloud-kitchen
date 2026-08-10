@@ -97,10 +97,10 @@ function AppInner() {
   };
 
   return (
-    <main className="min-h-screen bg-white text-slate-900">
+    <div className={isNative ? "pb-24" : ""}>
       {renderPage()}
       <BottomNavigation />
-    </main>
+    </div>
   );
 }
 

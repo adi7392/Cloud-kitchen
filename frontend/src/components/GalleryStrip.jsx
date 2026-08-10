@@ -153,7 +153,7 @@ export default function GalleryStrip() {
               transition={{ duration: 0.45 }}
               className="font-body text-mm-red text-sm tracking-[0.3em] uppercase font-600 mb-3"
             >
-              — A Taste of Cloud —
+              — A Taste of Magic —
             </motion.p>
             <motion.h2
               initial={{ opacity: 0, y: 22 }}

@@ -1,6 +1,4 @@
 import { createContext, useContext, useState, useEffect, useRef, useCallback } from "react";
-import { Capacitor } from "@capacitor/core";
-import { App } from "@capacitor/app";
 import api from "../services/api";
 
 const NavContext = createContext(null);
@@ -8,53 +6,42 @@ const NavContext = createContext(null);
 // ── Browser History helpers ───────────────────────────────────────────────────
 // We push a history state for every page so the browser Back button works.
 // The state payload is { page, pageData } so we can restore on popstate.
-// On native platforms we skip all of this — the hardware back button is handled
-// by the Capacitor App listener below.
 function pushHistory(page, pageData) {
   window.history.pushState({ page, pageData }, "", `#${page}`);
 }
 
 export function NavigationProvider({ children }) {
-  const isNative = Capacitor.isNativePlatform();
-  const [page, setPage]         = useState(isNative ? "menu" : "home");
+  const isNative = false;
+  const [page, setPage]         = useState("home");
   const [pageData, setPageData] = useState(null);
 
   // Navigation stack to keep track of pages visited
   const [stack, setStack] = useState(() => [
-    { page: isNative ? "menu" : "home", pageData: null }
+    { page: "home", pageData: null }
   ]);
 
   // ── Push a browser history entry on first mount (web only) ─────────────────
   useEffect(() => {
-    if (isNative) return;
     // Only push if the URL has no hash already (fresh load)
     if (!window.location.hash) {
-      pushHistory(isNative ? "menu" : "home", null);
+      pushHistory("home", null);
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const navigate = (target, data = null, options = {}) => {
-    let actualTarget = target;
-    // Prevent navigating to home on native if we want to force Menu as base
-    if (isNative && target === "home") {
-      actualTarget = "menu";
-    }
-
-    if (actualTarget === "menu") {
+    if (target === "menu") {
       // Reset stack on menu page
       setStack([{ page: "menu", pageData: null }]);
       setPage("menu");
       setPageData(null);
     } else {
-      setStack((prev) => [...prev, { page: actualTarget, pageData: data }]);
-      setPage(actualTarget);
+      setStack((prev) => [...prev, { page: target, pageData: data }]);
+      setPage(target);
       setPageData(data);
     }
 
     // Sync the browser history so the Back button knows about this page
-    if (!isNative) {
-      pushHistory(actualTarget, data);
-    }
+    pushHistory(target, data);
 
     if (!options.noScroll) {
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -78,9 +65,6 @@ export function NavigationProvider({ children }) {
     }
 
     if (["menu", "admin", "delivery"].includes(page)) {
-      if (isNative) {
-        App.exitApp();
-      }
       return;
     }
 
@@ -108,8 +92,6 @@ export function NavigationProvider({ children }) {
 
   // ── Browser Back / Forward button (web only) ────────────────────────────────
   useEffect(() => {
-    if (isNative) return;
-
     const handlePopState = (event) => {
       if (event.state && event.state.page) {
         // Restore the page the browser history entry recorded
@@ -141,28 +123,15 @@ export function NavigationProvider({ children }) {
       } else {
         // No state means we've gone back before our first pushState entry
         // (e.g., the very initial browser page). Just go to the root.
-        setStack([{ page: isNative ? "menu" : "home", pageData: null }]);
-        setPage(isNative ? "menu" : "home");
+        setStack([{ page: "home", pageData: null }]);
+        setPage("home");
         setPageData(null);
       }
     };
 
     window.addEventListener("popstate", handlePopState);
     return () => window.removeEventListener("popstate", handlePopState);
-  }, [isNative]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // ── Hardware Back button on Android (native only) ───────────────────────────
-  useEffect(() => {
-    if (!isNative) return;
-
-    const listenerPromise = App.addListener("backButton", () => {
-      goBackRef.current();
-    });
-
-    return () => {
-      listenerPromise.then((handle) => handle.remove());
-    };
-  }, [isNative]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Settings ────────────────────────────────────────────────────────────────
   const [settings, setSettings] = useState(null);
@@ -220,7 +189,7 @@ export function NavigationProvider({ children }) {
   const storeStatus = getStoreOpenStatus();
 
   return (
-    <NavContext.Provider value={{ page, pageData, navigate, goBack, isNative, stack, settings, fetchSettings, storeStatus, registerBackHandler }}>
+    <NavContext.Provider value={{ page, pageData, navigate, goBack, stack, settings, fetchSettings, storeStatus, registerBackHandler }}>
       {children}
     </NavContext.Provider>
   );

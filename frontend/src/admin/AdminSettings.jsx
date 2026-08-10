@@ -17,9 +17,6 @@ const DEFAULTS = {
   storeStatusOverride: "auto",
   announcementText: "",
   alarmRingEnabled: true,
-  borzoEnabled: false,
-  borzoApiToken: "",
-  borzoSandbox: true,
 };
 
 export default function AdminSettings() {
@@ -211,18 +208,6 @@ export default function AdminSettings() {
             <Info size={12} className="shrink-0" />
             Disabled methods are hidden from customers at checkout. At least one must be enabled.
           </p>
-        </Section>
-
-        <Section title="Borzo Delivery Integration">
-          <Toggle label="Enable Borzo Delivery" checked={form.borzoEnabled} onChange={(v) => update("borzoEnabled", v)} />
-          {form.borzoEnabled && (
-            <div className="space-y-4 pt-2 border-t border-gray-50">
-              <Row label="Borzo API Token">
-                <Input value={form.borzoApiToken} onChange={(v) => update("borzoApiToken", v)} type="text" placeholder="Enter API Token" />
-              </Row>
-              <Toggle label="Sandbox (Test Environment)" checked={form.borzoSandbox} onChange={(v) => update("borzoSandbox", v)} />
-            </div>
-          )}
         </Section>
 
         <div className="flex flex-wrap items-center gap-3">

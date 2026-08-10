@@ -196,7 +196,7 @@ export default function HeroSection() {
                        flex items-center justify-center"
           >
             <span className="text-[4rem] sm:text-[6rem] lg:text-[8rem] select-none drop-shadow-2xl">
-              <img src={logo} alt="nana" />
+              <img className="rounded-full" src={logo} alt="nana" />
             </span>
 
             <motion.div

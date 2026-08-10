@@ -1,7 +1,7 @@
+import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { X, CheckCircle2, Info, AlertTriangle, XCircle } from "lucide-react";
 import { useNotifications } from "../context/NotificationContext";
-import { useEffect, useState } from "react";
 
 const TOAST_DURATION = 5000;
 

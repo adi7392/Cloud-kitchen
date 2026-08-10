@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Search, X, Loader2, ChevronLeft, ChevronRight,
-  Phone, MapPin, CreditCard, Package, Map, Radio, Zap,
+  Phone, MapPin, CreditCard, Package, Map, Radio,
 } from "lucide-react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
@@ -78,7 +78,7 @@ function AdminLiveMap() {
   const pins = liveOrders
     .filter(o => o.deliveryLocation?.lat != null)
     .map(o => ({ lat: o.deliveryLocation.lat, lng: o.deliveryLocation.lng,
-                 name: o.customer?.name, num: o.orderNumber }));
+                 name: o.deliveryBoy?.name || o.customer?.name || "Rider", num: o.orderNumber }));
 
   return (
     <div className="rounded-2xl overflow-hidden shadow-md border border-gray-100 mb-5"
@@ -159,7 +159,7 @@ function OrderCard({ order, onSelect }) {
     >
       <div className="flex items-center justify-between gap-3">
         <span className="font-body font-600 text-gray-800 text-sm">
-          #{id.toString().slice(-6).toUpperCase()}
+          {order.orderNumber || `#${id.toString().slice(-6).toUpperCase()}`}
         </span>
         <span className={`font-body text-xs font-600 px-2.5 py-1 rounded-full shrink-0 ${cfg.bg} ${cfg.text}`}>
           {order.status}
@@ -184,20 +184,6 @@ export default function AdminOrders() {
   const [selected, setSelected] = useState(null);
   const [updating, setUpdating] = useState(false);
   const [showMap,  setShowMap]  = useState(false);
-  const [settings, setSettings] = useState(null);
-
-  useEffect(() => {
-    (async () => {
-      try {
-        const res = await api.admin.getSettings();
-        if (res.success && res.settings) {
-          setSettings(res.settings);
-        }
-      } catch (err) {
-        console.error("Failed to load settings in AdminOrders:", err);
-      }
-    })();
-  }, []);
 
   const fetchOrders = useCallback(async (page = 1, silent = false) => {
     if (!silent) setLoading(true);
@@ -239,23 +225,6 @@ export default function AdminOrders() {
       setSelected((s) => (s ? { ...s, status } : s));
     } catch {
       // silently ignore — could surface a toast
-    } finally {
-      setUpdating(false);
-    }
-  };
-
-  const handleDispatchBorzo = async (id) => {
-    setUpdating(true);
-    try {
-      const res = await api.admin.orders.dispatchBorzo(id);
-      if (res.success && res.order) {
-        setOrders((prev) =>
-          prev.map((o) => ((o._id || o.id) === id ? res.order : o))
-        );
-        setSelected(res.order);
-      }
-    } catch (err) {
-      alert(err.message || "Failed to dispatch via Borzo");
     } finally {
       setUpdating(false);
     }
@@ -362,7 +331,7 @@ export default function AdminOrders() {
                         className="border-b border-gray-50 last:border-0 hover:bg-gray-50/60 cursor-pointer transition-colors"
                       >
                         <td className="px-5 py-3.5 font-body font-600 text-gray-800">
-                          #{id.toString().slice(-6).toUpperCase()}
+                          {o.orderNumber || `#${id.toString().slice(-6).toUpperCase()}`}
                         </td>
                         <td className="px-5 py-3.5 font-body text-gray-600">
                           {o.customer?.name || o.customerName}
@@ -433,7 +402,7 @@ export default function AdminOrders() {
             >
               <div className="flex items-center justify-between mb-5">
                 <h3 className="font-display text-lg text-gray-900 tracking-wide">
-                  ORDER #{(selected._id || selected.id).toString().slice(-6).toUpperCase()}
+                  ORDER {selected.orderNumber}
                 </h3>
                 <button onClick={() => setSelected(null)} className="text-gray-400 hover:text-gray-700 shrink-0">
                   <X size={20} />
@@ -469,6 +438,30 @@ export default function AdminOrders() {
                   <CreditCard size={15} className="text-gray-400 shrink-0" />
                   {selected.paymentMethod || "COD"}
                 </div>
+
+                {/* Delivery boy card */}
+                {selected.deliveryBoy && (
+                  <div className="flex items-center gap-3 rounded-xl p-3 mt-1"
+                       style={{ background: "rgba(34,197,94,0.07)", border: "1px solid rgba(34,197,94,0.2)" }}>
+                    <div className="w-9 h-9 rounded-xl flex items-center justify-center text-lg"
+                         style={{ background: "linear-gradient(135deg,#22c55e,#16a34a)" }}>🛵</div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-body text-[10px] uppercase tracking-wider text-gray-400">Delivery Partner</p>
+                      <p className="font-body text-sm font-700 text-gray-800">{selected.deliveryBoy.name}</p>
+                      {selected.deliveryBoy.phone && (
+                        <p className="font-body text-xs text-gray-500">{selected.deliveryBoy.phone}</p>
+                      )}
+                    </div>
+                    {selected.deliveryBoy.phone && (
+                      <a href={`tel:${selected.deliveryBoy.phone}`}
+                         className="w-9 h-9 rounded-xl flex items-center justify-center"
+                         style={{ background: "rgba(34,197,94,0.15)" }}
+                         title="Call delivery partner">
+                        <Phone size={14} style={{ color: "#16a34a" }} />
+                      </a>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div className="bg-gray-50 rounded-2xl p-4 mb-5">
@@ -488,70 +481,6 @@ export default function AdminOrders() {
                   <span>₹{selected.totalAmount ?? selected.total}</span>
                 </div>
               </div>
-
-              {/* Borzo Delivery Info */}
-              {selected.borzoOrderId && (
-                <div className="mb-5 bg-orange-50 border border-orange-100 rounded-2xl p-4 space-y-2">
-                  <p className="font-body text-xs font-600 text-orange-700 flex items-center gap-1.5 mb-2">
-                    <Zap size={12} /> BORZO DELIVERY
-                  </p>
-                  <div className="flex justify-between font-body text-xs text-gray-600">
-                    <span className="text-gray-400">Order ID</span>
-                    <span className="font-600">{selected.borzoOrderId}</span>
-                  </div>
-                  {selected.borzoDeliveryStatus && (
-                    <div className="flex justify-between font-body text-xs text-gray-600">
-                      <span className="text-gray-400">Status</span>
-                      <span className="font-600 capitalize">{selected.borzoDeliveryStatus}</span>
-                    </div>
-                  )}
-                  {selected.borzoDeliveryPrice > 0 && (
-                    <div className="flex justify-between font-body text-xs text-gray-600">
-                      <span className="text-gray-400">Delivery Price</span>
-                      <span className="font-600">₹{selected.borzoDeliveryPrice}</span>
-                    </div>
-                  )}
-                  {selected.borzoCourierName && (
-                    <div className="flex justify-between font-body text-xs text-gray-600">
-                      <span className="text-gray-400">Courier</span>
-                      <span className="font-600">{selected.borzoCourierName}</span>
-                    </div>
-                  )}
-                  {selected.borzoCourierPhone && (
-                    <div className="flex justify-between font-body text-xs text-gray-600">
-                      <span className="text-gray-400">Courier Phone</span>
-                      <a href={`tel:${selected.borzoCourierPhone}`} className="font-600 text-[#E8284B] hover:underline">{selected.borzoCourierPhone}</a>
-                    </div>
-                  )}
-                  {selected.borzoTrackingUrl && (
-                    <div className="flex justify-between font-body text-xs text-gray-600 pt-1 border-t border-orange-200">
-                      <span className="text-gray-400">External Tracking</span>
-                      <a
-                        href={selected.borzoTrackingUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="font-700 text-[#E8284B] hover:underline flex items-center gap-1"
-                      >
-                        🔗 Track on Borzo
-                      </a>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Borzo Dispatch Button */}
-              {settings?.borzoEnabled && !selected.borzoOrderId && ["Confirmed", "Preparing"].includes(selected.status) && (
-                <div className="mb-4">
-                  <button
-                    disabled={updating}
-                    onClick={() => handleDispatchBorzo(selected._id || selected.id)}
-                    className="w-full flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-body font-600 text-sm px-4 py-2.5 rounded-xl transition-colors disabled:opacity-50"
-                  >
-                    <Zap size={14} />
-                    {updating ? "Dispatching…" : "Dispatch via Borzo (Instant)"}
-                  </button>
-                </div>
-              )}
 
               <p className="font-body text-xs font-600 text-gray-500 mb-2">UPDATE STATUS</p>
               <div className="flex flex-wrap gap-2">

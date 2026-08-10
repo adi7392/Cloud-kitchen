@@ -201,7 +201,7 @@ export default function OrderSuccessPage() {
                   ORDER PLACED!
                 </h1>
                 <p className="font-body text-green-100 mt-2 text-sm">
-                  Your magic is on the way 🎉
+                  Your order is on the way 🎉
                 </p>
               </div>
             )}
